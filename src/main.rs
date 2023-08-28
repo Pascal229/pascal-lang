@@ -21,43 +21,24 @@ struct Cli {
 fn main() {
     let args = Cli::parse();
 
-    let mut file = File::create("out.asm").expect("Failed to create file");
-
-    // let node_prog = NodeProg {
-    //     stmts: vec![
-    //         NodeStmt::Exit(NodeStmtExit {
-    //             expr: NodeExpr::IntLit(NodeExprIntLit { int_lit: 42 }),
-    //         }),
-    //         NodeStmt::Let(NodeStmtLet {
-    //             ident: NodeExprIdent {
-    //                 ident: "x".to_string(),
-    //             },
-    //             expr: NodeExpr::IntLit(NodeExprIntLit { int_lit: 10 }),
-    //         }),
-    //     ],
-    // };
-
     let mut parser = Parser::new(fs::read_to_string(args.file).expect("Failed to read file"));
     let node_prog = parser.parse();
 
     let mut generator = Generator::new(node_prog);
     let generated_code = generator.gen_prog();
 
+    let mut file = File::create("out.asm").expect("Failed to create file");
     file.write_all(generated_code.as_bytes())
         .expect("Failed to write to file");
 
-    let nasm_check = Command::new("which") // or "where" on Windows
-        .arg("nasm")
-        .output();
+    let nasm_check = Command::new("which").arg("nasm").output();
 
     if nasm_check.is_ok() && nasm_check.unwrap().stdout.len() == 0 {
         eprintln!("nasm not found (try `apt install nasm` or `brew install nasm`)");
         process::exit(1);
     }
 
-    let ld_check = Command::new("which") // or "where" on Windows
-        .arg("ld")
-        .output();
+    let ld_check = Command::new("which").arg("ld").output();
 
     if ld_check.is_ok() && ld_check.unwrap().stdout.len() == 0 {
         eprintln!("ld not found (try `apt install binutils` or `brew install binutils`)");
