@@ -1,8 +1,8 @@
 mod generator;
-use generator::{
-    Generator, NodeExpr, NodeExprIdent, NodeExprIntLit, NodeProg, NodeStmt, NodeStmtExit,
-    NodeStmtLet,
-};
+use generator::Generator;
+
+mod parser;
+use parser::Parser;
 
 use std::{
     fs::{self, File},
@@ -10,10 +10,9 @@ use std::{
     process::{self, Command},
 };
 
-use clap::Parser;
+use clap::Parser as ClapParser;
 
-/// Search for a pattern in a file and display the lines that contain it.
-#[derive(Parser)]
+#[derive(ClapParser)]
 struct Cli {
     file: std::path::PathBuf,
     output: String,
@@ -24,19 +23,22 @@ fn main() {
 
     let mut file = File::create("out.asm").expect("Failed to create file");
 
-    let node_prog = NodeProg {
-        stmts: vec![
-            NodeStmt::Exit(NodeStmtExit {
-                expr: NodeExpr::IntLit(NodeExprIntLit { int_lit: 42 }),
-            }),
-            NodeStmt::Let(NodeStmtLet {
-                ident: NodeExprIdent {
-                    ident: "x".to_string(),
-                },
-                expr: NodeExpr::IntLit(NodeExprIntLit { int_lit: 10 }),
-            }),
-        ],
-    };
+    // let node_prog = NodeProg {
+    //     stmts: vec![
+    //         NodeStmt::Exit(NodeStmtExit {
+    //             expr: NodeExpr::IntLit(NodeExprIntLit { int_lit: 42 }),
+    //         }),
+    //         NodeStmt::Let(NodeStmtLet {
+    //             ident: NodeExprIdent {
+    //                 ident: "x".to_string(),
+    //             },
+    //             expr: NodeExpr::IntLit(NodeExprIntLit { int_lit: 10 }),
+    //         }),
+    //     ],
+    // };
+
+    let mut parser = Parser::new(fs::read_to_string(args.file).expect("Failed to read file"));
+    let node_prog = parser.parse();
 
     let mut generator = Generator::new(node_prog);
     let generated_code = generator.gen_prog();

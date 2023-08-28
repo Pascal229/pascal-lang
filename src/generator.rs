@@ -1,36 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::Write;
 
-pub struct NodeExprIntLit {
-    pub int_lit: i64,
-}
-
-pub struct NodeExprIdent {
-    pub ident: String,
-}
-
-pub enum NodeExpr {
-    IntLit(NodeExprIntLit),
-    Ident(NodeExprIdent),
-}
-
-pub struct NodeStmtExit {
-    pub expr: NodeExpr,
-}
-
-pub struct NodeStmtLet {
-    pub ident: NodeExprIdent,
-    pub expr: NodeExpr,
-}
-
-pub enum NodeStmt {
-    Exit(NodeStmtExit),
-    Let(NodeStmtLet),
-}
-
-pub struct NodeProg {
-    pub stmts: Vec<NodeStmt>,
-}
+use crate::parser::NodeProg;
 
 pub struct Generator {
     m_prog: NodeProg,
@@ -56,7 +27,7 @@ impl Generator {
         // }
 
         write!(self.m_output, "    mov rax, 60\n").unwrap();
-        write!(self.m_output, "    mov rdi, 0\n").unwrap();
+        write!(self.m_output, "    mov rdi, {}\n", self.m_prog.exit_code).unwrap();
         write!(self.m_output, "    syscall\n").unwrap();
 
         self.m_output.clone()
